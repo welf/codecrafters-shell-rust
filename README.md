@@ -15,8 +15,6 @@ implementation includes:
 - [x] running external executables with arguments (run `ls -l -s` in the REPL as an
   example)
 
-Time to move on to the next stage!
-
 # Running the Shell
 
 1. Ensure you have `cargo (1.70)` installed locally
