@@ -68,9 +68,9 @@ fn main() {
             Command::Exit => process::exit(0),
             Command::Echo(args) => println!("{}", args.join(" ")),
             Command::Type(args) => {
-                // Join the arguments into a single string
+                // Join arguments into a single string, separated by spaces
                 let command_string = args.join(" ");
-                // Parse the string
+                // Parse the string to get the command
                 let cmd = Command::from(command_string.as_str());
 
                 match cmd {
