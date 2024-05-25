@@ -13,11 +13,15 @@ type Args<'a> = Vec<&'a str>;
 
 #[derive(Debug)]
 enum ShellCommand<'a> {
-    Exit,                                       // Built-in command
-    Echo(Args<'a>),                             // Built-in command
-    Type(Args<'a>),                             // Built-in command
-    Executable(Cmd<'a>, CommandPath, Args<'a>), // External command (executable)
-    Unknown(Cmd<'a>),                           // Unknown command
+    Exit,           // Built-in command
+    Echo(Args<'a>), // Built-in command
+    Type(Args<'a>), // Built-in command
+    Executable {
+        command: Cmd<'a>,
+        command_path: CommandPath,
+        args: Args<'a>,
+    }, // External command (executable)
+    Unknown(Cmd<'a>), // Unknown command
 }
 
 impl<'a> From<&'a str> for ShellCommand<'a> {
@@ -35,7 +39,11 @@ impl<'a> From<&'a str> for ShellCommand<'a> {
             "type" => ShellCommand::Type(args),
             // Check if the command is a known external command
             _ => match find_command_path(command) {
-                Some(command_path) => ShellCommand::Executable(command, command_path, args),
+                Some(command_path) => ShellCommand::Executable {
+                    command,
+                    command_path,
+                    args,
+                },
                 None => ShellCommand::Unknown(command),
             },
         }
@@ -48,7 +56,7 @@ impl<'a> Display for ShellCommand<'a> {
             ShellCommand::Exit => write!(f, "exit"),
             ShellCommand::Echo(_) => write!(f, "echo"),
             ShellCommand::Type(_) => write!(f, "type"),
-            ShellCommand::Executable(command, _, _) => write!(f, "{}", command),
+            ShellCommand::Executable { command, .. } => write!(f, "{}", command),
             ShellCommand::Unknown(command) => write!(f, "{}", command),
         }
     }
@@ -74,8 +82,12 @@ fn main() {
                 let cmd = ShellCommand::from(command_string.as_str());
 
                 match cmd {
-                    ShellCommand::Executable(command, path, _) => {
-                        println!("{} is {}", command, path)
+                    ShellCommand::Executable {
+                        command,
+                        command_path,
+                        ..
+                    } => {
+                        println!("{} is {}", command, command_path)
                     }
                     ShellCommand::Unknown(command) => println!("{}: not found", command),
                     _ => {
@@ -83,7 +95,9 @@ fn main() {
                     }
                 }
             }
-            ShellCommand::Executable(_command, command_path, args) => {
+            ShellCommand::Executable {
+                command_path, args, ..
+            } => {
                 // Execute the command and get its output
                 let output = process::Command::new(command_path).args(args).output();
                 match output {
