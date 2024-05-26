@@ -65,12 +65,14 @@ impl<'a> Display for ShellCommand<'a> {
 fn main() {
     loop {
         print!("$ ");
-        io::stdout().flush().unwrap();
+        io::stdout().flush().expect("Failed to flush stdout");
 
         // Wait for user input
         let stdin = io::stdin();
         let mut input = String::new();
-        stdin.read_line(&mut input).unwrap();
+        stdin
+            .read_line(&mut input)
+            .expect("Failed to read from stdin");
 
         match ShellCommand::from(input.trim()) {
             ShellCommand::Exit => process::exit(0),
@@ -104,12 +106,17 @@ fn main() {
                     Ok(output) => {
                         if output.status.success() {
                             // Write the output to the standard output
-                            io::stdout().write_all(&output.stdout).unwrap();
+                            io::stdout()
+                                .write_all(&output.stdout)
+                                .expect("Failed to write to stdout");
                         } else {
                             // Write the error code to the standard error
                             eprintln!(
                                 "Command failed with the status code {}",
-                                output.status.code().unwrap()
+                                output
+                                    .status
+                                    .code()
+                                    .expect("Failed to get the output's status code")
                             )
                         }
                     }
