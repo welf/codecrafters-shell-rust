@@ -134,16 +134,13 @@ fn find_command_path(command: &str) -> Option<String> {
     let path_variable = std::env::var("PATH");
     match path_variable {
         Ok(paths) => {
-            let paths = paths.split(':');
+            let mut paths = paths.split(':');
 
-            match paths
-                .filter(|path| {
-                    // Check if the executable is in one of the PATH directories
-                    let full_command_path = format!("{}/{}", path, command);
-                    std::path::Path::new(&full_command_path).exists()
-                })
-                .next()
-            {
+            match paths.find(|path| {
+                // Check if the executable is in one of the PATH directories
+                let full_command_path = format!("{}/{}", path, command);
+                std::path::Path::new(&full_command_path).exists()
+            }) {
                 // If the executable is found in one of PATH directories, return its full path
                 Some(path) => Some(format!("{}/{}", path, command)),
                 None => {
