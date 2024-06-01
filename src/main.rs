@@ -11,7 +11,6 @@ type CommandPath = String;
 /// Command arguments
 type Args<'a> = Vec<&'a str>;
 
-#[derive(Debug)]
 enum ShellCommand<'a> {
     Cd(Option<&'a str>), // Built-in command
     Exit,                // Built-in command
