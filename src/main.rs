@@ -13,6 +13,7 @@ type Args<'a> = Vec<&'a str>;
 
 #[derive(Debug)]
 enum ShellCommand<'a> {
+    Cd(String),     // Built-in command
     Exit,           // Built-in command
     Echo(Args<'a>), // Built-in command
     Pwd,            // Built-in command
@@ -32,9 +33,10 @@ impl<'a> From<&'a str> for ShellCommand<'a> {
         // Get the command
         let command = parts.next().unwrap_or_default();
         // Get the arguments
-        let args = parts.collect();
+        let args: Vec<&str> = parts.collect();
 
         match command {
+            "cd" => ShellCommand::Cd(args.join(" ")),
             "exit" => ShellCommand::Exit,
             "echo" => ShellCommand::Echo(args),
             "pwd" => ShellCommand::Pwd,
@@ -55,6 +57,7 @@ impl<'a> From<&'a str> for ShellCommand<'a> {
 impl<'a> Display for ShellCommand<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ShellCommand::Cd(_) => write!(f, "cd"),
             ShellCommand::Exit => write!(f, "exit"),
             ShellCommand::Echo(_) => write!(f, "echo"),
             ShellCommand::Pwd => write!(f, "pwd"),
@@ -78,6 +81,12 @@ fn main() {
             .expect("Failed to read from stdin");
 
         match ShellCommand::from(input.trim()) {
+            ShellCommand::Cd(path) => {
+                // Change the current working directory
+                if let Err(_e) = std::env::set_current_dir(&path) {
+                    println!("{}: No such file or directory", path);
+                }
+            }
             ShellCommand::Exit => process::exit(0),
             ShellCommand::Echo(args) => println!("{}", args.join(" ")),
             ShellCommand::Pwd => {
