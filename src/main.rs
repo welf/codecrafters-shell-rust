@@ -13,17 +13,17 @@ type Args<'a> = Vec<&'a str>;
 
 #[derive(Debug)]
 enum ShellCommand<'a> {
-    Cd(String),     // Built-in command
-    Exit,           // Built-in command
-    Echo(Args<'a>), // Built-in command
-    Pwd,            // Built-in command
-    Type(Args<'a>), // Built-in command
+    Cd(Option<&'a str>), // Built-in command
+    Exit,                // Built-in command
+    Echo(Args<'a>),      // Built-in command
+    Pwd,                 // Built-in command
+    Type(Args<'a>),      // Built-in command
     Executable {
         command: Cmd<'a>,
         command_path: CommandPath,
         args: Args<'a>,
     }, // External command (executable)
-    Unknown(Cmd<'a>), // Unknown command
+    Unknown(Cmd<'a>),    // Unknown command
 }
 
 impl<'a> From<&'a str> for ShellCommand<'a> {
@@ -36,7 +36,7 @@ impl<'a> From<&'a str> for ShellCommand<'a> {
         let args: Vec<&str> = parts.collect();
 
         match command {
-            "cd" => ShellCommand::Cd(args.join(" ")),
+            "cd" => ShellCommand::Cd(args.first().cloned()),
             "exit" => ShellCommand::Exit,
             "echo" => ShellCommand::Echo(args),
             "pwd" => ShellCommand::Pwd,
@@ -82,8 +82,9 @@ fn main() {
 
         match ShellCommand::from(input.trim()) {
             ShellCommand::Cd(path) => {
+                let path = path.unwrap_or("~");
                 // Change the current working directory
-                if let Err(_e) = std::env::set_current_dir(&path) {
+                if let Err(_e) = std::env::set_current_dir(path) {
                     println!("{}: No such file or directory", path);
                 }
             }
@@ -152,15 +153,15 @@ fn find_command_path(command: &str) -> Option<String> {
     let path_variable = std::env::var("PATH");
     match path_variable {
         Ok(paths) => {
-            let mut paths = paths.split(':');
+            let mut paths = std::env::split_paths(&paths);
 
             match paths.find(|path| {
                 // Check if the executable is in one of the PATH directories
-                let full_command_path = format!("{}/{}", path, command);
+                let full_command_path = format!("{}/{}", path.display(), command);
                 std::path::Path::new(&full_command_path).exists()
             }) {
                 // If the executable is found in one of PATH directories, return its full path
-                Some(path) => Some(format!("{}/{}", path, command)),
+                Some(path) => Some(format!("{}/{}", path.display(), command)),
                 None => {
                     // If the command itself is the full path to the executable, return it
                     if std::path::Path::new(command).exists() {
