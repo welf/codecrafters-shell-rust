@@ -15,6 +15,7 @@ type Args<'a> = Vec<&'a str>;
 enum ShellCommand<'a> {
     Exit,           // Built-in command
     Echo(Args<'a>), // Built-in command
+    Pwd,            // Built-in command
     Type(Args<'a>), // Built-in command
     Executable {
         command: Cmd<'a>,
@@ -36,6 +37,7 @@ impl<'a> From<&'a str> for ShellCommand<'a> {
         match command {
             "exit" => ShellCommand::Exit,
             "echo" => ShellCommand::Echo(args),
+            "pwd" => ShellCommand::Pwd,
             "type" => ShellCommand::Type(args),
             // Check if the command is a known external command
             _ => match find_command_path(command) {
@@ -55,6 +57,7 @@ impl<'a> Display for ShellCommand<'a> {
         match self {
             ShellCommand::Exit => write!(f, "exit"),
             ShellCommand::Echo(_) => write!(f, "echo"),
+            ShellCommand::Pwd => write!(f, "pwd"),
             ShellCommand::Type(_) => write!(f, "type"),
             ShellCommand::Executable { command, .. } => write!(f, "{}", command),
             ShellCommand::Unknown(command) => write!(f, "{}", command),
@@ -77,6 +80,12 @@ fn main() {
         match ShellCommand::from(input.trim()) {
             ShellCommand::Exit => process::exit(0),
             ShellCommand::Echo(args) => println!("{}", args.join(" ")),
+            ShellCommand::Pwd => {
+                // Get the current working directory
+                let cwd =
+                    std::env::current_dir().expect("Failed to get the current working directory");
+                println!("{}", cwd.display());
+            }
             ShellCommand::Type(args) => {
                 // Join arguments into a single string, separated by spaces
                 let command_string = args.join(" ");
