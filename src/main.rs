@@ -83,9 +83,25 @@ fn main() {
         match ShellCommand::from(input.trim()) {
             ShellCommand::Cd(path) => {
                 let path = path.unwrap_or("~");
+
+                let path = if path.starts_with('~') {
+                    let stripped_path = if path.starts_with("~/") {
+                        // We need to strip the slash as well to join the path with the home directory
+                        path.strip_prefix("~/").unwrap()
+                    } else {
+                        // Strip the tilde from the path
+                        path.strip_prefix('~').unwrap()
+                    };
+                    // Expand the tilde to the home directory
+                    let home_dir = std::env::var("HOME").expect("Failed to get the home directory");
+                    // Join the home directory with the stripped path
+                    std::path::Path::new(&home_dir).join(stripped_path)
+                } else {
+                    std::path::PathBuf::from(path)
+                };
                 // Change the current working directory
-                if let Err(_e) = std::env::set_current_dir(path) {
-                    println!("{}: No such file or directory", path);
+                if let Err(_e) = std::env::set_current_dir(&path) {
+                    println!("{}: No such file or directory", path.display());
                 }
             }
             ShellCommand::Exit => process::exit(0),
