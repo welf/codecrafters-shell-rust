@@ -1,3 +1,8 @@
+<!--toc:start-->
+- [Challenge Status](#challenge-status)
+- [Running the Shell](#running-the-shell)
+<!--toc:end-->
+
 [![progress-banner](https://backend.codecrafters.io/progress/shell/4ae060a4-3f40-417e-81a3-41b43fa10ab6)](https://app.codecrafters.io/users/welf?r=2qF)
 
 This is a repo for Rust solutions to the
@@ -14,6 +19,8 @@ implementation includes:
   `type mkdir` in the REPL as an example)
 - [x] running external executables with arguments (run `ls -l -s` in the REPL as an
   example)
+- [x] implementing the `pwd` built-in command
+- [x] implementing the `cd` built-in command
 
 # Running the Shell
 
